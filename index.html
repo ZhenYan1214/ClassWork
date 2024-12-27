@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <!-- 處理畫面過度放大的問題 -->
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no"> <!--簡化 DOM 操作與 AJAX 請求-->>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script> <!--圖表編制-->>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet"> 
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet"> <!--地圖視覺化-->>
+    <link type="text/css" rel="stylesheet" href="./css/style.css"> <!--自定義樣式表-->>
+</head>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <!-- 放入這段 CSS -->
+    <style>
+        #mainChart {
+            width: 60%; /* 地圖占左側 60% 寬度 */
+            height: 100%; /* 高度填滿 */
+            position: absolute;
+            left: 0; /* 靠左對齊 */
+            top: 0;
+        }
+
+        #rightContainer {
+            display: flex;
+            flex-direction: column; /* 垂直排列 */
+            width: 38%; /* 調整寬度，讓圖表稍微縮小 */
+            position: absolute;
+            right: 2%; /* 增加與右邊的距離 */
+            top: 0;
+            height: 100%; /* 高度填滿視窗 */
+        }
+
+        #rightUpChart {
+            flex: 1; /* 占用一部分空間 */
+            width: 100%;
+            height: 50%; /* 設定上半區域的高度 */
+        }
+
+        #rightDownChart {
+            flex: 1; /* 占用一部分空間 */
+            width: 100%;
+            height: 50%; /* 設定下半區域的高度 */
+        }
+    </style>
+</head>
+
+<body id="main">
+    <div id='mainChart'></div> <!-- 地圖 -->
+    <div id="rightContainer">
+        <div id='rightUpChart'></div> <!-- 右上圖表 -->
+        <div id='rightDownChart'></div> <!-- 右下折線圖 -->
+    </div>
+    
+
+    
+
+    <script type="text/javascript">
+        function createMap(allData) {
+            mapboxgl.accessToken = 'pk.eyJ1IjoiYmlhYm9ibyIsImEiOiJjamVvejdlNXQxZnBuMndtdWhiZHRuaTNpIn0.PIS9wtUxm_rz_IzF2WFD1g';
+            //建立地圖
+            var map = new mapboxgl.Map({
+                container: 'mainChart',
+                style: 'mapbox://styles/mapbox/light-v11',
+                center: [119.55172573030532, 23.605671083240612],
+                zoom: 11
+            });
+    
+            //加入地標
+            for (var i = 0; i < allData.length; i++) {
+                if (allData[i]['coord']) {  // 檢查座標是否存在
+                    (function(markerData) { // 使用立即執行函數封裝每次的 marker
+                        const marker = new mapboxgl.Marker({ color: '#A41623' })
+                            .setLngLat(markerData['coord'])
+                            .addTo(map);
+    
+                        // 點擊地標的事件處理
+                        marker.getElement().addEventListener('click', function () { // 新增事件監聽器
+                            var markerCoord = marker.getLngLat();  // 抓取 marker 座標點
+                            for (var j = 0; j < allData.length; j++) {
+                                var coord = allData[j]['coord'];
+                                if (markerCoord.lng === coord[0] && markerCoord.lat === coord[1]) { // 判斷經緯度
+                                    setChart(allData[j]);                      
+                                }
+                            }
+                        });
+                    })(allData[i]);  // 將 allData[i] 作為立即執行函數的參數傳入
+                }
+            }
+        }
+    
+        var barChart = echarts.init(document.getElementById('rightUpChart'));
+        var chart = echarts.init(document.getElementById('rightDownChart'));
+
+    
+        function createChart(data, type, chart) {
+            var values = data['value'];
+            var dateList = [];
+            var quanList = [];
+            var aquanList = [];
+    
+            for (var i = 0; i < values.length; i++) {
+                var v = values[i];
+                dateList.push(v['date']);   //月份
+                quanList.push(v['quan']);   //人數
+            }
+    
+            var option = {
+                title: {
+                    text: "各月" + data['station'] + "旅遊人數",
+                    textStyle: {
+                        color: '#FF0000'
+                    }
+                },
+                visualMap: {
+                    type: 'continuous',
+                    orient: 'horizontal',
+                    left: 'center',
+                    min: 1000,
+                    max: 22000,
+                    text: ['熱鬧', '冷清'],
+                    dimension: 1,
+                    inRange: {
+                        color: ['#338bff','#f5ea73', '#FF0000']
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    data: dateList  
+                },
+                yAxis: {
+                    type: 'value',
+                    min:0,
+                    max:40000,
+                    interval:8000
+                },
+                series: [{
+                    name: '人數',
+                    type: type,
+                    data: quanList
+                }]
+            }
+            chart.setOption(option);
+        }
+
+        function createLineChart() {
+    // 初始化折線圖容器
+    var chart = echarts.init(document.getElementById('rightDownChart'));
+
+    // 定義月份和對應的數據
+    const dateList = [
+        '2023-01', '2023-02', '2023-03', '2023-04', '2023-05', 
+        '2023-06', '2023-07', '2023-08', '2023-09', '2023-10', 
+        '2023-11', '2023-12'
+    ];
+
+    const aquanList = [
+        28448,40749,53778,104541,166296, 
+        196671,178326,114374,94536,70790, 
+        39837,30453
+    ];
+
+    // 折線圖設置
+    var option = {
+    title: {
+        text: "旅遊總人數",
+        textStyle: {
+            color: '#FF0000'
+        }
+    },
+    tooltip: {
+        trigger: 'axis',
+        formatter: '{b}: {c} 人'
+    },
+    grid: {
+        left: '15%', // 調整左側間距
+        right: '5%', // 調整右側間距
+        top: '15%', // 調整頂部間距
+        bottom: '10%' // 調整底部間距
+    },
+    xAxis: {
+        type: 'category',
+        data: [
+            '2023-01', '2023-02', '2023-03', '2023-04', '2023-05',
+            '2023-06', '2023-07', '2023-08', '2023-09', '2023-10',
+            '2023-11', '2023-12'
+        ],
+        boundaryGap: false
+    },
+    yAxis: {
+        type: 'value',
+        min: 0,
+        max: 200000,
+        interval: 40000,
+        axisLabel: {
+            formatter: '{value} 人'
+        }
+    },
+    series: [{
+        name: '人數',
+        type: 'line',
+        data: [
+            28448,40749,53778,104541,166296, 
+            196671,178326,114374,94536,70790, 
+            39837,30453
+        ],
+        smooth: true,
+        lineStyle: {
+            width: 2
+        },
+        itemStyle: {
+            color: '#0066CC'
+        }
+    }]
+};
+
+
+    // 設定圖表
+    chart.setOption(option);
+}
+
+// 初始化折線圖
+createLineChart();
+        
+
+        function setChart(data){
+            createChart(data,'bar',barChart);
+            createChart(data,'line')
+        }
+        // 從 JSON 檔案讀取資料
+        $.getJSON("people.json")
+            .done(function (allData) {
+                console.log(allData);
+                createMap(allData);
+                setChart(allData[0]);
+            })
+            .fail(function () {
+                console.error("Error fetching weather data.");
+            });
+    </script>
+    
+    
+
+
+</body>
+
+</html>
