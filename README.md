@@ -21,12 +21,32 @@
 
 ## 使用技術
 
-| 技術      | 說明                                |
-|-----------|-------------------------------------|
-| Mapbox GL | 用於地圖可視化與互動               |
-| ECharts   | 用於直方圖與折線圖的數據展示       |
-| jQuery    | 實現數據的 AJAX 請求與 DOM 操作    |
-| HTML/CSS  | 前端界面設計                       |
-| JavaScript| 實現交互邏輯與動態渲染            |
+<table style="width:100%; text-align:center;">
+  <tr>
+    <th style="text-align:center;">技術</th>
+    <th style="text-align:center;">說明</th>
+  </tr>
+  <tr>
+    <td>Mapbox GL</td>
+    <td>用於地圖可視化與互動</td>
+  </tr>
+  <tr>
+    <td>ECharts</td>
+    <td>用於直方圖與折線圖的數據展示</td>
+  </tr>
+  <tr>
+    <td>jQuery</td>
+    <td>實現數據的 AJAX 請求與 DOM 操作</td>
+  </tr>
+  <tr>
+    <td>HTML/CSS</td>
+    <td>前端界面設計</td>
+  </tr>
+  <tr>
+    <td>JavaScript</td>
+    <td>實現交互邏輯與動態渲染</td>
+  </tr>
+</table>
+
 
 ---
